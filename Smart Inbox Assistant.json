@@ -1,0 +1,871 @@
+{
+  "name": "Smart Inbox Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "maxResults": 20,
+        "filters": {
+          "readStatus": "unread"
+        },
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "e4f3831e-8c56-435d-baef-e384a6ad1761",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "89HSP3nziXk5BBE1",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Email subject: {{ $json.subject }}\nEmail body: {{ $json.text }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an email triage assistant for ScaleOn, a business automation company.   Classify the incoming email into exactly one category:   - SALES_LEAD (potential client inquiry, pricing question, wants a call/demo)   - SUPPORT (existing customer, issue or question about a service)   - URGENT (complaint, deadline, angry tone, time-sensitive)   - SPAM_PROMO (newsletters, ads, irrelevant marketing)   - GENERAL (anything else)    Respond ONLY with the category name, nothing else."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        240,
+        0
+      ],
+      "id": "c6a4b7c2-ee44-4e7b-a84e-103fbe8c8ce2",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        464,
+        0
+      ],
+      "id": "4b654291-2c25-4442-b8d7-6bf71f51321b",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      },
+      "notes": "You are an email triage assistant for ScaleOn, a business automation company.\nClassify the incoming email into exactly one category:\n- SALES_LEAD (potential client inquiry, pricing question, wants a call/demo)\n- SUPPORT (existing customer, issue or question about a service)\n- URGENT (complaint, deadline, angry tone, time-sensitive)\n- SPAM_PROMO (newsletters, ads, irrelevant marketing)\n- GENERAL (anything else)\n\nRespond ONLY with the category name, nothing else.\n\nEmail subject: {{subject}}\nEmail body: {{body}}"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.text.trim() }}",
+                    "rightValue": "SALES_LEAD",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "d0c2c419-e62d-4954-8fea-20c1e627af61"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "01a251b5-37ee-418f-b70f-4dcb442263bd",
+                    "leftValue": "={{ $json.text.trim() }}",
+                    "rightValue": "SUPPORT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "7cc6a9a5-e581-45ee-b6b9-965870f4e3b4",
+                    "leftValue": "={{ $json.text.trim() }}",
+                    "rightValue": "URGENT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "34f8e7ac-bcd7-4c61-9109-0146a9af07ef",
+                    "leftValue": "={{ $json.text.trim() }}",
+                    "rightValue": "GENERAL",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "5571778d-befd-493a-8ce8-4a88b964a8e9",
+                    "leftValue": "={{ $json.text.trim() }}",
+                    "rightValue": "SPAM_PROMO",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "none"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        592,
+        0
+      ],
+      "id": "33b57e53-c19b-4bbb-ba8e-505ea076bd95",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1072,
+        -176
+      ],
+      "id": "cba0e94a-d7f8-4a80-ac9c-fcf93f142024",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Sender name: {{ $('Gmail Trigger').item.json.from.value[0].name }}\nOriginal email subject: {{ $('Gmail Trigger').item.json.subject }}\nOriginal email body: {{ $('Gmail Trigger').item.json.text }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are writing an email reply on behalf of ScaleOn. Tone: professional, warm, concise. This is a sales inquiry. Acknowledge their interest, briefly highlight ScaleOn's value,  and invite them to book a quick call. Keep it 3-5 sentences. Address the recipient by their first name in the greeting (e.g. \"Hi Utsav\"). If no clear name is available, use \"Hi there,\". Sign off as \"ScaleOn Team\"."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        848,
+        -192
+      ],
+      "id": "7a9dfd57-445b-45e0-93e0-f24f8eb783ba",
+      "name": "Basic LLM Chain1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1072,
+        -16
+      ],
+      "id": "2948284c-42fb-4c58-acec-83b9e3c41545",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Sender name: {{ $('Gmail Trigger').item.json.from.value[0].name }}\nOriginal email subject: {{ $('Gmail Trigger').item.json.subject }}\nOriginal email body: {{ $('Gmail Trigger').item.json.text }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are writing an email reply on behalf of ScaleOn. Tone: professional, empathetic, reassuring. This is a support query. Acknowledge the issue, reassure them the team is looking into it,  and state our support team will follow up within 24 hours. Keep it 3-5 sentences. Address the recipient by their first name in the greeting (e.g. \"Hi Utsav,\"). If no clear name is available, use \"Hi there,\". Sign off as \"ScaleOn Team\"."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        848,
+        -32
+      ],
+      "id": "0d7e1870-80f9-47ac-9d3b-eaf0b1b98cda",
+      "name": "Basic LLM Chain2"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1072,
+        144
+      ],
+      "id": "43d3bf38-a3c3-40ba-b58a-e167618d6205",
+      "name": "OpenAI Chat Model3",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Sender name: {{ $('Gmail Trigger').item.json.from.value[0].name }}\nOriginal email subject: {{ $('Gmail Trigger').item.json.subject }}\nOriginal email body: {{ $('Gmail Trigger').item.json.text }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are writing an email reply on behalf of ScaleOn. Tone: calm, apologetic, action-oriented. This is an urgent/time-sensitive complaint. Apologize for the inconvenience, confirm this  is being escalated immediately, and give reassurance of a fast resolution. Keep it 3-4  sentences. Address the recipient by their first name in the greeting (e.g. \"Hi Utsav,\"). If no clear name is available, use \"Hi there,\". Sign off as \"ScaleOn Team\"."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        848,
+        128
+      ],
+      "id": "3bd39856-59d5-48b3-8f0a-c5ed5ee66f52",
+      "name": "Basic LLM Chain3"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1072,
+        304
+      ],
+      "id": "f5065e66-da11-4171-992b-9ad579f87e4a",
+      "name": "OpenAI Chat Model4",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Sender name: {{ $('Gmail Trigger').item.json.from.value[0].name }}\nOriginal email subject: {{ $('Gmail Trigger').item.json.subject }}\nOriginal email body: {{ $('Gmail Trigger').item.json.text }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are writing an email reply on behalf of ScaleOn. Tone: friendly, casual-professional. This is a general email. Write a short, warm, appropriate reply acknowledging their message.  Keep it 2-4 sentences. Address the recipient by their first name in the greeting (e.g. \"Hi Utsav,\"). If no clear name is available, use \"Hi there,\". Sign off as \"ScaleOn Team\"."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        848,
+        288
+      ],
+      "id": "c9b52a38-449d-420a-9e16-7589ecc3a688",
+      "name": "Basic LLM Chain4"
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "=Re: {{ $('Gmail Trigger').item.json.subject }}",
+        "message": "={{ $json.text }}",
+        "options": {
+          "threadId": "={{ $('Gmail Trigger').item.json.threadId }}",
+          "sendTo": "={{ $('Gmail Trigger').item.json.from.value[0].address }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1312,
+        -192
+      ],
+      "id": "c7d3e7ca-95a9-4947-ae5e-61b3b4d58add",
+      "name": "Create a draft",
+      "webhookId": "b6f875ec-9d1a-41aa-9670-f29aa5781153",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "89HSP3nziXk5BBE1",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": [
+          "Label_2419508246509010984"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1552,
+        -192
+      ],
+      "id": "27ce1c25-7b3e-46cd-be52-57db05eda8d5",
+      "name": "Add label to message",
+      "webhookId": "fe6c9314-6cfd-4bc4-a4c8-ff4903616321",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "89HSP3nziXk5BBE1",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "=Re: {{ $('Gmail Trigger').item.json.subject }}",
+        "message": "={{ $json.text }}",
+        "options": {
+          "threadId": "={{ $('Gmail Trigger').item.json.threadId }}",
+          "sendTo": "={{ $('Gmail Trigger').item.json.from.value[0].address }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1312,
+        160
+      ],
+      "id": "e09071da-ca36-4cb2-9d1f-28749e5be517",
+      "name": "Create a draft1",
+      "webhookId": "b6f875ec-9d1a-41aa-9670-f29aa5781153",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "89HSP3nziXk5BBE1",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "=Re: {{ $('Gmail Trigger').item.json.subject }}",
+        "message": "={{ $json.text }}",
+        "options": {
+          "threadId": "={{ $('Gmail Trigger').item.json.threadId }}",
+          "sendTo": "={{ $('Gmail Trigger').item.json.from.value[0].address }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1312,
+        0
+      ],
+      "id": "c9ffbc24-87d5-49e5-84a0-91e5145a10d8",
+      "name": "Create a draft2",
+      "webhookId": "b6f875ec-9d1a-41aa-9670-f29aa5781153",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "89HSP3nziXk5BBE1",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "=Re: {{ $('Gmail Trigger').item.json.subject }}",
+        "message": "={{ $json.text }}",
+        "options": {
+          "threadId": "={{ $('Gmail Trigger').item.json.threadId }}",
+          "sendTo": "={{ $('Gmail Trigger').item.json.from.value[0].address }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1328,
+        320
+      ],
+      "id": "a1b8833a-72bf-4c6f-8360-29f1f22a0418",
+      "name": "Create a draft3",
+      "webhookId": "b6f875ec-9d1a-41aa-9670-f29aa5781153",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "89HSP3nziXk5BBE1",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": [
+          "Label_2206177905266853688"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1552,
+        -16
+      ],
+      "id": "414e8cc6-6c90-4355-b924-5f419dfa600a",
+      "name": "Add label to message1",
+      "webhookId": "fe6c9314-6cfd-4bc4-a4c8-ff4903616321",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "89HSP3nziXk5BBE1",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": [
+          "Label_4810892299910431969"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1552,
+        160
+      ],
+      "id": "3688ef28-502d-491f-96ce-3e2d47774b49",
+      "name": "Add label to message2",
+      "webhookId": "fe6c9314-6cfd-4bc4-a4c8-ff4903616321",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "89HSP3nziXk5BBE1",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": [
+          "Label_5314764728760262214"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1552,
+        320
+      ],
+      "id": "f723aa5c-a019-4663-b632-18358f392ac0",
+      "name": "Add label to message3",
+      "webhookId": "fe6c9314-6cfd-4bc4-a4c8-ff4903616321",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "89HSP3nziXk5BBE1",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": [
+          "Label_4987294286769363339"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        864,
+        464
+      ],
+      "id": "362472cb-74ec-467f-a153-0c5178e11661",
+      "name": "Add label to message4",
+      "webhookId": "fe6c9314-6cfd-4bc4-a4c8-ff4903616321",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "89HSP3nziXk5BBE1",
+          "name": "Gmail account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Basic LLM Chain2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Basic LLM Chain3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Basic LLM Chain4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add label to message4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [],
+        [],
+        []
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain4",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain1": {
+      "main": [
+        [
+          {
+            "node": "Create a draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain2": {
+      "main": [
+        [
+          {
+            "node": "Create a draft2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain3": {
+      "main": [
+        [
+          {
+            "node": "Create a draft1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain4": {
+      "main": [
+        [
+          {
+            "node": "Create a draft3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add label to message": {
+      "main": [
+        []
+      ]
+    },
+    "Create a draft3": {
+      "main": [
+        [
+          {
+            "node": "Add label to message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a draft": {
+      "main": [
+        [
+          {
+            "node": "Add label to message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a draft2": {
+      "main": [
+        [
+          {
+            "node": "Add label to message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a draft1": {
+      "main": [
+        [
+          {
+            "node": "Add label to message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "7588f022-d4bd-4308-a62f-429d042e62c6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "56415f9f07d8f4177a3eedd989841fed6fcb9e9e36dca59f746d82215c84888e"
+  },
+  "nodeGroups": [],
+  "id": "pHr2JlDNnjAKZMnm",
+  "tags": []
+}
